@@ -7,12 +7,14 @@ import { Component, OnInit } from '@angular/core';
 })
 export class InstructionInputComponent implements OnInit {
   registers: Array<string>;
+  memory: Array<number>;
   hazardDisplay = '';
 
   constructor() { }
 
   ngOnInit() {
     this.registers = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3', '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7', '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7', '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'];
+    this.memory = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
   }
 
   submitInstructionSet() {
@@ -56,25 +58,43 @@ export class InstructionInputComponent implements OnInit {
   }
 
   add(parsedInstruction: Array<string>) {
-    const storageRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
 
     const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
     const secondNum = Number((document.getElementById(parsedInstruction[3].replace(',', '').trim()) as HTMLInputElement).value);
 
-    (document.getElementById(storageRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
+    (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
   }
 
-  store(parsedInstruction: Array<string>) {}
+  store(parsedInstruction: Array<string>) {
+    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
 
-  load(parsedInstruction: Array<string>) {}
+    const parseAddress = parsedInstruction[2].valueOf().split('(');
+    const offset = parseAddress[0].trim();
+    const addressRegister = parseAddress[1].replace(')', '').trim().toLowerCase();
+    const newAddress = (+offset + +addressRegister).toString();
+
+    (document.getElementById(newAddress) as HTMLInputElement).value = (document.getElementById(destinationRegister) as HTMLInputElement).value;
+  }
+
+  load(parsedInstruction: Array<string>) {
+    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+
+    const parseAddress = parsedInstruction[2].valueOf().split('(');
+    const offset = parseAddress[0].trim();
+    const addressRegister = parseAddress[1].replace(')', '').trim().toLowerCase();
+    const newAddress = (+offset + +addressRegister).toString();
+
+    (document.getElementById(destinationRegister) as HTMLInputElement).value = (document.getElementById(newAddress) as HTMLInputElement).value;
+  }
 
   sub(parsedInstruction: Array<string>) {
-    const storageRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
 
     const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
     const secondNum = Number((document.getElementById(parsedInstruction[3].replace(',', '').trim()) as HTMLInputElement).value);
 
-    (document.getElementById(storageRegister) as HTMLInputElement).value = (firstNum - secondNum).toString();
+    (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum - secondNum).toString();
   }
 
   insertInitialInstruction(commandNumber: number) {
