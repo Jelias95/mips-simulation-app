@@ -1,1 +1,66 @@
-<p>instruction-input works!</p>
+<div
+  class="parent-container"
+  fxLayout
+  fxLayout.xs="column"
+  fxLayoutAlign="center"
+  fxLayoutGap="10px"
+  fxLayoutGap.xs="0"
+>
+  <div
+    class="left-container"
+    fxFlex="60%"
+    fxLayout="column"
+    fxLayoutAlign="center"
+    fxLayoutGap="10px"
+    fxLayoutGap.xs="0"
+  >
+    <div class="instructions-input-container">
+      <mat-card fxLayout="column">
+        <h2>Input Instructions</h2>
+        <mat-form-field appearance="outline">
+          <mat-label>Input Instructions</mat-label>
+          <textarea
+            matInput
+            matTextareaAutosize
+            matAutosizeMinRows="5"
+            id="instructionList"
+          ></textarea>
+        </mat-form-field>
+        <button mat-raised-button (click)="submitInstructionSet()">Execute Instructions</button>
+      </mat-card>
+    </div>
+
+    <div class="instruction-result-container">
+      <mat-card fxLayout="column">
+        <h2>Initial Instruction Results</h2>
+        <table id="resultTable">
+        </table>
+      </mat-card>
+    </div>
+
+    <div class="instruction-hazard-container">
+      <mat-card fxLayout="column">
+        <h2>Compensating for Hazards</h2>
+        <mat-form-field appearance="outline">
+          <mat-label>Compensating for Hazards</mat-label>
+          <textarea
+            matInput
+            matTextareaAutosize
+            matAutosizeMinRows="5"
+            id="instructionHazard"
+          ></textarea>
+        </mat-form-field>
+      </mat-card>
+    </div>
+  </div>
+
+  <div class="right-container" fxFlex>
+    <mat-card>
+      <h2>Registers</h2>
+      <mat-form-field *ngFor="let register of registers" appearance="outline">
+        <input matInput id="{{ register }}" class="register-display-container" disabled />
+        <span matPrefix> {{ register }}: </span>
+      </mat-form-field>
+    </mat-card>
+  </div>
+</div>
