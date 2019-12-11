@@ -35,14 +35,15 @@ export class InstructionInputComponent implements OnInit {
     for (let i = 0; i < instructionSet.length; i++) {
       const command = instructionSet[i][0].trim().toLowerCase();
       switch (command) {
-        // case 'add': {
-        //   this.add(parsedInstruction);
-        //   this.insertInitialInstruction(i);
-        //   break;
-        // }
+        case 'add': {
+          this.add(instructionSet, i);
+          this.hazardDisplay += this.displayHazard(instructionSet, i);
+          break;
+        }
         case 'addi': {
           this.addi(instructionSet, i);
           this.hazardDisplay += this.displayHazard(instructionSet, i);
+          // this.displayHazardi(i);
           break;
         }
         // case 'sw': {
@@ -121,53 +122,47 @@ export class InstructionInputComponent implements OnInit {
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum - secondNum).toString();
   }
 
-  // TODO: This instruction is wrong, need to detect hazards first, then print out with stalls before printing updated version
-
-  displayHazard(instructionSet: Array<Array<string>>, commandNumber: number): string {
+  displayHazard(instructionSet: Array<Array<string>>, i: number): string {
     let hazards = '';
-    const instructionTable = (document.getElementById('resultTable') as HTMLTableElement);
     const hazardTable = (document.getElementById('hazardTable') as HTMLTableElement);
+
+    if (i === 1) {
+      if (instructionSet[i][2].replace(',' , '').trim() === instructionSet[i - 1][1].replace(',', '').trim() ||
+        instructionSet[i][3].replace(',', '').trim() === instructionSet[i - 1][1].replace(',', '').trim()) {
+          hazards += 'Data Hazard: Instructions ' + (i - 1) + ' and ' + i + ' use register ' + instructionSet[i - 1][1].replace(',', '').trim() + '. Implement Fowarding.';
+        }
+    }
+    this.noStall(i, hazardTable);
     return hazards;
   }
 
-  displayHazardi(commandNumber: number) {
-    const instructionTable = (document.getElementById('resultTable') as HTMLTableElement);
-    const newRow = instructionTable.insertRow(commandNumber);
-    for (let i = 0; i < commandNumber; i++) {
-      const newCell = newRow.insertCell(i);
+  noStall(i: number, table: HTMLTableElement) {
+    const newRow = table.insertRow(i);
+
+    for (let j = 0; j < i; j++) {
+      const newCell = newRow.insertCell(j);
       const newText = document.createTextNode('');
       newCell.appendChild(newText);
     }
 
-    let newCell = newRow.insertCell(commandNumber);
+    let newCell = newRow.insertCell(i);
     let newText = document.createTextNode('IF');
     newCell.appendChild(newText);
 
-    newCell = newRow.insertCell(commandNumber + 1);
+    newCell = newRow.insertCell(i + 1);
     newText = document.createTextNode('ID');
     newCell.appendChild(newText);
 
-    newCell = newRow.insertCell(commandNumber + 2);
+    newCell = newRow.insertCell(i + 2);
     newText = document.createTextNode('EX');
     newCell.appendChild(newText);
 
-    newCell = newRow.insertCell(commandNumber + 3);
+    newCell = newRow.insertCell(i + 3);
     newText = document.createTextNode('M');
     newCell.appendChild(newText);
 
-    newCell = newRow.insertCell(commandNumber + 4);
+    newCell = newRow.insertCell(i + 4);
     newText = document.createTextNode('W');
     newCell.appendChild(newText);
-  }
-
-  insertHazardInstruction() { }
-
-  checkDataHazard(hazardList: Array<number>, index: number, currentInstruction: Array<string>, instructionSet: Array<string>): Array<number> {
-    for (let i = index + 1; i < index + 4; i++) {
-      if (instructionSet[i].includes(currentInstruction[1].replace(',', '').trim().toLowerCase())) {
-        hazardList.push(i);
-      }
-    }
-    return hazardList;
   }
 }
