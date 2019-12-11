@@ -32,6 +32,21 @@ export class InstructionInputComponent implements OnInit {
           // this.checkDataHazard(hazardList, i, parsedInstruction, instructionSet);
           break;
         }
+        case 'sw': {
+          this.store(parsedInstruction);
+          this.insertInitialInstruction(i);
+          break;
+        }
+        case 'lw': {
+          this.load(parsedInstruction);
+          this.insertInitialInstruction(i);
+          break;
+        }
+        case 'sub': {
+          this.sub(parsedInstruction);
+          this.insertInitialInstruction(i);
+          break;
+        }
         default: {
           console.log('OOPS! Unable to find command!');
           break;
@@ -42,8 +57,24 @@ export class InstructionInputComponent implements OnInit {
 
   add(parsedInstruction: Array<string>) {
     const storageRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
-    const total = +parsedInstruction[2].replace(',', '').trim() + +parsedInstruction[3].replace(',', '').trim();
-    (document.getElementById(storageRegister) as HTMLInputElement).value = total.toString();
+
+    const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
+    const secondNum = Number((document.getElementById(parsedInstruction[3].replace(',', '').trim()) as HTMLInputElement).value);
+
+    (document.getElementById(storageRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
+  }
+
+  store(parsedInstruction: Array<string>) {}
+
+  load(parsedInstruction: Array<string>) {}
+
+  sub(parsedInstruction: Array<string>) {
+    const storageRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+
+    const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
+    const secondNum = Number((document.getElementById(parsedInstruction[3].replace(',', '').trim()) as HTMLInputElement).value);
+
+    (document.getElementById(storageRegister) as HTMLInputElement).value = (firstNum - secondNum).toString();
   }
 
   insertInitialInstruction(commandNumber: number) {
