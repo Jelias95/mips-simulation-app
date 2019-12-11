@@ -21,12 +21,15 @@ export class InstructionInputComponent implements OnInit {
   }
 
   executeInstructionSet(instructionSet: Array<string>) {
+    const hazardList = [];
     for (let i = 0; i < instructionSet.length; i++) {
       const parsedInstruction: Array<string> = instructionSet[i].valueOf().split(' ');
       const command = parsedInstruction[0].trim().toLowerCase();
       switch (command) {
         case 'add': {
-          this.add(parsedInstruction, i);
+          this.add(parsedInstruction);
+          this.insertInitialInstruction(i);
+          // this.checkDataHazard(hazardList, i, parsedInstruction, instructionSet);
           break;
         }
         default: {
@@ -37,17 +40,18 @@ export class InstructionInputComponent implements OnInit {
     }
   }
 
-  add(parsedInstruction: Array<string>, commandNumber: number) {
+  add(parsedInstruction: Array<string>) {
     const storageRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
     const total = +parsedInstruction[2].replace(',', '').trim() + +parsedInstruction[3].replace(',', '').trim();
     (document.getElementById(storageRegister) as HTMLInputElement).value = total.toString();
+  }
+
+  insertInitialInstruction(commandNumber: number) {
     const instructionTable = (document.getElementById('resultTable') as HTMLTableElement);
-
-    const newRow = instructionTable.insertRow();
-
+    const newRow = instructionTable.insertRow(commandNumber);
     for (let i = 0; i < commandNumber; i++) {
-      let newCell = newRow.insertCell(i);
-      let newText = document.createTextNode('');
+      const newCell = newRow.insertCell(i);
+      const newText = document.createTextNode('');
       newCell.appendChild(newText);
     }
 
@@ -72,4 +76,15 @@ export class InstructionInputComponent implements OnInit {
     newCell.appendChild(newText);
   }
 
+  insertHazardInstruction() { }
+
+  checkDataHazard(hazardList: Array<number>, index: number, currentInstruction: Array<string>, instructionSet: Array<string>): Array<number> {
+    for (let i = index + 1; i < index + 4; i++) {
+      if (instructionSet[i].includes(currentInstruction[1].replace(',', '').trim().toLowerCase()))
+      {
+        hazardList.push(i);
+      }
+    }
+    return hazardList;
+  }
 }
