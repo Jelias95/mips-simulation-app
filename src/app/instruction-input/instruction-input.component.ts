@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
 export class InstructionInputComponent implements OnInit {
   registers: Array<string>;
   memory: Array<number>;
-  hazardDisplay = '';
+  hazardDisplay: string;
 
   constructor() { }
 
@@ -21,63 +21,71 @@ export class InstructionInputComponent implements OnInit {
 
   submitInstructionSet() {
     (document.getElementById('$zero') as HTMLInputElement).value = '0';
-    const instructionSet: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
+    const instructionRows: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
+    let instructionSet: Array<Array<string>> = new Array<Array<string>>();
+    for (let i = 0; i < instructionRows.length; i++) {
+      instructionSet[i] = instructionRows[i].valueOf().split(' ');
+      console.log(instructionSet);
+    }
     this.executeInstructionSet(instructionSet);
   }
 
-  executeInstructionSet(instructionSet: Array<string>) {
-    const hazardList = [];
+  executeInstructionSet(instructionSet: Array<Array<string>>) {
+    this.hazardDisplay = '';
     for (let i = 0; i < instructionSet.length; i++) {
-      const parsedInstruction: Array<string> = instructionSet[i].valueOf().split(' ');
-      const command = parsedInstruction[0].trim().toLowerCase();
+      const command = instructionSet[i][0].trim().toLowerCase();
       switch (command) {
-        case 'add': {
-          this.add(parsedInstruction);
-          this.insertInitialInstruction(i);
-          break;
-        }
+        // case 'add': {
+        //   this.add(parsedInstruction);
+        //   this.insertInitialInstruction(i);
+        //   break;
+        // }
         case 'addi': {
-          this.addi(parsedInstruction);
-          this.insertInitialInstruction(i);
+          this.addi(instructionSet, i);
+          this.hazardDisplay += this.displayHazard(instructionSet, i);
           break;
         }
-        case 'sw': {
-          this.store(parsedInstruction);
-          this.insertInitialInstruction(i);
-          break;
-        }
-        case 'lw': {
-          this.load(parsedInstruction);
-          this.insertInitialInstruction(i);
-          break;
-        }
-        case 'sub': {
-          this.sub(parsedInstruction);
-          this.insertInitialInstruction(i);
-          break;
-        }
+        // case 'sw': {
+        //   this.store(parsedInstruction);
+        //   this.insertInitialInstruction(i);
+        //   break;
+        // }
+        // case 'lw': {
+        //   this.load(parsedInstruction);
+        //   this.insertInitialInstruction(i);
+        //   break;
+        // }
+        // case 'sub': {
+        //   this.sub(parsedInstruction);
+        //   this.insertInitialInstruction(i);
+        //   break;
+        // }
         default: {
           console.log('OOPS! Unable to find command!');
           break;
         }
       }
     }
+    this.hazardDisplay.length > 0 ?
+      (document.getElementById('hazardList') as HTMLInputElement).value = this.hazardDisplay
+      : (document.getElementById('hazardList') as HTMLInputElement).value = 'No Hazards Found';
   }
 
-  add(parsedInstruction: Array<string>) {
-    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
 
-    const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
-    const secondNum = Number((document.getElementById(parsedInstruction[3].replace(',', '').trim()) as HTMLInputElement).value);
+  add(parsedInstruction: Array<Array<string>>, i: number) {
+    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
+
+    const firstNum = Number((document.getElementById(parsedInstruction[i][2].replace(',', '').trim()) as HTMLInputElement).value);
+    const secondNum = Number((document.getElementById(parsedInstruction[i][3].replace(',', '').trim()) as HTMLInputElement).value);
 
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
   }
 
-  addi(parsedInstruction: Array<string>) {
-    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+  addi(parsedInstruction: Array<Array<string>>, i: number) {
+    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
 
-    const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
-    const secondNum = Number(parsedInstruction[3].replace(',', '').trim());
+    const firstNum = Number((document.getElementById(parsedInstruction[i][2].replace(',', '').trim()) as HTMLInputElement).value);
+    const secondNum = Number(parsedInstruction[i][3].replace(',', '').trim());
 
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
   }
@@ -115,7 +123,14 @@ export class InstructionInputComponent implements OnInit {
 
   // TODO: This instruction is wrong, need to detect hazards first, then print out with stalls before printing updated version
 
-  insertInitialInstruction(commandNumber: number) {
+  displayHazard(instructionSet: Array<Array<string>>, commandNumber: number): string {
+    let hazards = '';
+    const instructionTable = (document.getElementById('resultTable') as HTMLTableElement);
+    const hazardTable = (document.getElementById('hazardTable') as HTMLTableElement);
+    return hazards;
+  }
+
+  displayHazardi(commandNumber: number) {
     const instructionTable = (document.getElementById('resultTable') as HTMLTableElement);
     const newRow = instructionTable.insertRow(commandNumber);
     for (let i = 0; i < commandNumber; i++) {
@@ -149,8 +164,7 @@ export class InstructionInputComponent implements OnInit {
 
   checkDataHazard(hazardList: Array<number>, index: number, currentInstruction: Array<string>, instructionSet: Array<string>): Array<number> {
     for (let i = index + 1; i < index + 4; i++) {
-      if (instructionSet[i].includes(currentInstruction[1].replace(',', '').trim().toLowerCase()))
-      {
+      if (instructionSet[i].includes(currentInstruction[1].replace(',', '').trim().toLowerCase())) {
         hazardList.push(i);
       }
     }

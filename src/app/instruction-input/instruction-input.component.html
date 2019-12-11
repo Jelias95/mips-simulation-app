@@ -1,5 +1,14 @@
 <div class="parent-container" fxLayout fxLayout.xs="column" fxLayoutAlign="center" fxLayoutGap="10px"
   fxLayoutGap.xs="0">
+  <div class="memory-container" fxFlex>
+    <mat-card>
+      <h2>System Memory</h2>
+      <mat-form-field *ngFor="let slot of memory" appearance="outline">
+        <input matInput id="{{ slot }}" class="memory-display-container" disabled />
+        <span matPrefix> {{ slot }}: </span>
+      </mat-form-field>
+    </mat-card>
+  </div>
   <div class="left-container" fxFlex="60%" fxLayout="column" fxLayoutAlign="center" fxLayoutGap="10px"
     fxLayoutGap.xs="0">
     <div class="instructions-input-container">
