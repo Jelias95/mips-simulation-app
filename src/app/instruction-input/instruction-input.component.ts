@@ -16,10 +16,11 @@ export class InstructionInputComponent implements OnInit {
     this.registers = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3', '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7', '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7', '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'];
 
     // TODO: Memory is incorrect, look at how load and store word work
-    this.memory = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    this.memory = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   }
 
   submitInstructionSet() {
+    (document.getElementById('$zero') as HTMLInputElement).value = '0';
     const instructionSet: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
     this.executeInstructionSet(instructionSet);
   }
@@ -33,7 +34,11 @@ export class InstructionInputComponent implements OnInit {
         case 'add': {
           this.add(parsedInstruction);
           this.insertInitialInstruction(i);
-          // this.checkDataHazard(hazardList, i, parsedInstruction, instructionSet);
+          break;
+        }
+        case 'addi': {
+          this.addi(parsedInstruction);
+          this.insertInitialInstruction(i);
           break;
         }
         case 'sw': {
@@ -64,6 +69,15 @@ export class InstructionInputComponent implements OnInit {
 
     const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
     const secondNum = Number((document.getElementById(parsedInstruction[3].replace(',', '').trim()) as HTMLInputElement).value);
+
+    (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
+  }
+
+  addi(parsedInstruction: Array<string>) {
+    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+
+    const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
+    const secondNum = Number(parsedInstruction[3].replace(',', '').trim());
 
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
   }
