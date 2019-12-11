@@ -14,6 +14,8 @@ export class InstructionInputComponent implements OnInit {
 
   ngOnInit() {
     this.registers = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3', '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7', '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7', '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'];
+
+    // TODO: Memory is incorrect, look at how load and store word work
     this.memory = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
   }
 
@@ -96,6 +98,8 @@ export class InstructionInputComponent implements OnInit {
 
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum - secondNum).toString();
   }
+
+  // TODO: This instruction is wrong, need to detect hazards first, then print out with stalls before printing updated version
 
   insertInitialInstruction(commandNumber: number) {
     const instructionTable = (document.getElementById('resultTable') as HTMLTableElement);
