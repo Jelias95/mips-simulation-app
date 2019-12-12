@@ -19,16 +19,9 @@
           <textarea matInput matTextareaAutosize matAutosizeMinRows="5" id="instructionList"></textarea>
         </mat-form-field>
         <button mat-raised-button (click)="submitInstructionSet()">Execute Instructions</button>
+        <button mat-raised-button (click)="clearPage()">Clear Timing Diagram and Hazard List</button>
       </mat-card>
     </div>
-
-    <!-- <div class="instruction-result-container">
-      <mat-card fxLayout="column">
-        <h2>Initial Instruction Results</h2>
-        <table id="resultTable">
-        </table>
-      </mat-card>
-    </div> -->
 
     <div class="hazard-list-container">
       <mat-card fxLayout="column">
@@ -42,8 +35,8 @@
 
     <div class="instruction-hazard-container">
       <mat-card fxLayout="column">
-        <h2>Compensating for Hazards</h2>
-        <table id="hazardTable">
+        <h2>Timing Diagram</h2>
+        <table id="timingDiagram">
         </table>
       </mat-card>
     </div>

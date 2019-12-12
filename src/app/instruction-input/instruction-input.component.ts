@@ -9,7 +9,6 @@ import { Instruction } from '../shared/models/instruction.model';
 export class InstructionInputComponent implements OnInit {
   registers: Array<string>;
   memory: Array<number>;
-  hazardDisplay: string;
 
   constructor() { }
 
@@ -23,6 +22,14 @@ export class InstructionInputComponent implements OnInit {
     (document.getElementById('$zero') as HTMLInputElement).value = '0';
     const instructionRows: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
     this.executeInstructionSet(instructionRows);
+  }
+
+  clearPage() {
+    (document.getElementById('hazardList') as HTMLInputElement).value = '';
+    const numRows = (document.getElementById('timingDiagram') as HTMLTableElement).rows;
+    for (let i = 0; i < numRows.length; i++) {
+      (document.getElementById('timingDiagram') as HTMLTableElement).deleteRow(i);
+    }
   }
 
   createInstruction(instructionRow: string): Instruction {
@@ -80,7 +87,7 @@ export class InstructionInputComponent implements OnInit {
 
   executeInstructionSet(instructionRows: Array<string>) {
     const instructionSet: Array<Instruction> = new Array<Instruction>();
-    this.hazardDisplay = '';
+    let hazardList = '';
     for (let i = 0; i < instructionRows.length; i++) {
       const parsedInstruction = instructionRows[i].valueOf().split(' ');
       switch (parsedInstruction[0].trim().toLowerCase()) {
@@ -88,14 +95,14 @@ export class InstructionInputComponent implements OnInit {
         case 'addi': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.add(instructionSet[i]);
-          this.hazardDisplay += this.displayHazard(instructionSet, i);
+          hazardList += this.displayHazard(instructionSet, i);
           break;
         }
         case 'sub': { }
         case 'subi': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.sub(instructionSet[i]);
-          this.hazardDisplay += this.displayHazard(instructionSet, i);
+          hazardList += this.displayHazard(instructionSet, i);
           break;
         }
         case 'sw': {
@@ -114,11 +121,10 @@ export class InstructionInputComponent implements OnInit {
         }
       }
     }
-    this.hazardDisplay.length > 0 ?
-      (document.getElementById('hazardList') as HTMLInputElement).value = this.hazardDisplay
+    hazardList.length > 0 ?
+      (document.getElementById('hazardList') as HTMLInputElement).value = hazardList
       : (document.getElementById('hazardList') as HTMLInputElement).value = 'No Hazards Found';
   }
-
 
   add(instruction: Instruction) {
     (document.getElementById(instruction.destinationRegister) as HTMLInputElement).value =
@@ -143,26 +149,26 @@ export class InstructionInputComponent implements OnInit {
   displayHazard(instructionSet: Array<Instruction>, i: number): string {
     let hazards = '';
     let numInstructions = instructionSet.length <= 3 ? instructionSet.length : 3;
-    const hazardTable = (document.getElementById('hazardTable') as HTMLTableElement);
 
     while (numInstructions > 1) {
       if (instructionSet[i].usedRegisters.includes(instructionSet[i - numInstructions + 1].destinationRegister)) {
         hazards += 'Data Hazard: Instructions ' +
-          (i - numInstructions + 1) +
+          (i - numInstructions + 2) +
           ' and ' +
-          i +
+          (i + 1) +
           ' use register ' +
           instructionSet[i - numInstructions + 1].destinationRegister +
           '. Implement Fowarding.\n';
       }
       numInstructions--;
     }
-    this.noStall(i, hazardTable);
+    this.noStall(i);
     return hazards;
   }
 
-  noStall(i: number, table: HTMLTableElement) {
-    const newRow = table.insertRow(i);
+  noStall(i: number) {
+    const timingDiagram = (document.getElementById('timingDiagram') as HTMLTableElement);
+    const newRow = timingDiagram.insertRow(i);
 
     for (let j = 0; j < i; j++) {
       const newCell = newRow.insertCell(j);
