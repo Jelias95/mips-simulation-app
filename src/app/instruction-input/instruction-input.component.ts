@@ -114,7 +114,7 @@ export class InstructionInputComponent implements OnInit {
         }
         case 'lw': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
-          // this.load(instructionSet[i]);
+          this.load(instructionSet[i]);
           hazardList += this.displayHazard(instructionSet, i);
           break;
         }
@@ -200,7 +200,6 @@ export class InstructionInputComponent implements OnInit {
   }
 
   basicTiming(i: number, instruction: Instruction) {
-    console.log('basic timing: ' + instruction.command + i);
     const timingDiagram = (document.getElementById('timingDiagram') as HTMLTableElement);
     const newRow = timingDiagram.insertRow(i);
 
@@ -215,51 +214,31 @@ export class InstructionInputComponent implements OnInit {
     this.addCell(newRow, i + 4, 'W');
   }
 
-  // TODO: Fix Problem running this code:
-  // lw $t0, 0($zero)
-  // add $t1, $t0, $zero
-  // addi $t2, $t0, 5
-  // addi $t3, $t0, 2
-
   solveLoadHazard(i: number, instructionSet: Array<Instruction>) {
-    console.log('load hazard solve: ' + instructionSet[i].command + i);
-    let numInstructions = instructionSet.length <= 3 ? instructionSet.length : 3;
+    let numInstructions = instructionSet.length <= 4 ? instructionSet.length : 4;
     const timingDiagram = (document.getElementById('timingDiagram') as HTMLTableElement);
     const newRow = timingDiagram.insertRow(i);
 
     for (let j = 0; j < i; j++) {
       this.addCell(newRow, j, '');
     }
-console.log('start while');
     while (numInstructions > 1) {
-      console.log('while');
-      if (instructionSet[i].usedRegisters.includes(instructionSet[i - numInstructions + 1].destinationRegister)) {
-        console.log('first if');
-        if (instructionSet[i - numInstructions + 1].command === 'lw') {
-          console.log('second if');
-          if (i - (i - numInstructions + 1) === 1) {
-            console.log('scenario one');
-            this.addCell(newRow, i, 'IF');
-            this.addCell(newRow, i + 1, 'ID');
-            this.addCell(newRow, i + 2, 'stall');
-          } else if (i - (i - numInstructions + 1) === 2) {
-            console.log('scenario two');
-            this.addCell(newRow, i, 'IF');
-            this.addCell(newRow, i + 1, 'stall');
-            this.addCell(newRow, i + 2, 'ID');
-          } else {
-            console.log('scenario three');
-            this.addCell(newRow, i, 'stall');
-            console.log('stall');
-            this.addCell(newRow, i + 1, 'IF');
-            console.log('if');
-            this.addCell(newRow, i + 2, 'ID');
-            console.log('id');
-          }
+      if (instructionSet[i - numInstructions + 1].command === 'lw') {
+        if (i - (i - numInstructions + 1) === 1) {
+          this.addCell(newRow, i, 'IF');
+          this.addCell(newRow, i + 1, 'ID');
+          this.addCell(newRow, i + 2, 'stall');
+        } else if (i - (i - numInstructions + 1) === 2) {
+          this.addCell(newRow, i, 'IF');
+          this.addCell(newRow, i + 1, 'stall');
+          this.addCell(newRow, i + 2, 'ID');
+        } else {
+          this.addCell(newRow, i, 'stall');
+          this.addCell(newRow, i + 1, 'IF');
+          this.addCell(newRow, i + 2, 'ID');
         }
-      }
+        }
       numInstructions--;
-      console.log('minus num');
     }
 
     this.addCell(newRow, i + 3, 'EX');
