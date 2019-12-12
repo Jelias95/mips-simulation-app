@@ -15,11 +15,10 @@ export class InstructionInputComponent implements OnInit {
   ngOnInit() {
     this.registers = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3', '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7', '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7', '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'];
 
-    this.memory = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    this.memory = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   }
 
   submitInstructionSet() {
-    (document.getElementById('$zero') as HTMLInputElement).value = '0';
     this.clearPage();
     const instructionRows: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
     this.executeInstructionSet(instructionRows);
@@ -188,6 +187,15 @@ export class InstructionInputComponent implements OnInit {
         }
       }
       numInstructions--;
+    }
+    if (numInstructions > 3) {
+      if (instructionSet[i - 3].command === 'lw' || instructionSet[i - 3].command === 'sw') {
+        hazards += 'Structural Hazard: Instructions ' +
+          (i + 1) +
+          ' and ' +
+          (i - 2) +
+          ' access memory at the same time. Add CPU hardware.\n';
+      }
     }
     stallNeeded ? this.solveLoadHazard(i, instructionSet) : this.basicTiming(i, instructionSet[i]);
     return hazards;

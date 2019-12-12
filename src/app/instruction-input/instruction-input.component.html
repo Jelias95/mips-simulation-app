@@ -4,7 +4,7 @@
     <mat-card>
       <h2>System Memory</h2>
       <mat-form-field *ngFor="let slot of memory" appearance="outline">
-        <input matInput id="{{ slot }}" class="memory-display-container" disabled />
+        <input matInput id="{{ slot }}" class="memory-display-container" value = "0" disabled />
         <span matPrefix> {{ slot }}: </span>
       </mat-form-field>
     </mat-card>
@@ -46,7 +46,7 @@
     <mat-card>
       <h2>Registers</h2>
       <mat-form-field *ngFor="let register of registers" appearance="outline">
-        <input matInput id="{{ register }}" class="register-display-container" disabled />
+        <input matInput id="{{ register }}" class="register-display-container" value = "0" disabled />
         <span matPrefix> {{ register }}: </span>
       </mat-form-field>
     </mat-card>
