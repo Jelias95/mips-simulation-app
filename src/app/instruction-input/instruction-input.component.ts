@@ -176,25 +176,23 @@ export class InstructionInputComponent implements OnInit {
               instructionSet[i - numInstructions + 1].destinationRegister +
               '. Implement pipeline interlock.\n';
             loadHazard = true;
-          } else {
-            loadHazard = true;
           }
         } else if (numInstructions === 4) {
           hazards += 'Data Hazard: Instructions ' +
-          (i + 1) +
-          ' and ' +
-          (i - numInstructions + 2) +
-          ' use register ' +
-          instructionSet[i - numInstructions + 1].destinationRegister +
-          '. Implement write 1st half, read 2nd half of cycle.\n';
+            (i + 1) +
+            ' and ' +
+            (i - numInstructions + 2) +
+            ' use register ' +
+            instructionSet[i - numInstructions + 1].destinationRegister +
+            '. Implement write 1st half, read 2nd half of cycle.\n';
         } else {
-        hazards += 'Data Hazard: Instructions ' +
-          (i + 1) +
-          ' and ' +
-          (i - numInstructions + 2) +
-          ' use register ' +
-          instructionSet[i - numInstructions + 1].destinationRegister +
-          '. Implement fowarding.\n';
+          hazards += 'Data Hazard: Instructions ' +
+            (i + 1) +
+            ' and ' +
+            (i - numInstructions + 2) +
+            ' use register ' +
+            instructionSet[i - numInstructions + 1].destinationRegister +
+            '. Implement fowarding.\n';
         }
       }
       numInstructions--;
@@ -203,56 +201,82 @@ export class InstructionInputComponent implements OnInit {
     return hazards;
   }
 
-  addCell(row: HTMLTableRowElement, cell: number, node: string) {
-    const newCell = row.insertCell(cell);
-    const newText = document.createTextNode(node);
+  addCell(row: HTMLTableRowElement, cell: number, node: string, currentInstruction: number): number {
+    let cellOffset = cell;
+    let newCell: HTMLTableDataCellElement;
+    let newText: Text;
+
+    if (currentInstruction > 0) {
+      if (cellOffset < (document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells.length) {
+        if ((document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells[cellOffset].innerText === node && node !== '') {
+          newCell = row.insertCell(cellOffset);
+          newText = document.createTextNode('stall');
+          newCell.appendChild(newText);
+          cellOffset++;
+        }
+        if ((document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells[cellOffset].innerText === 'stall') {
+          newCell = row.insertCell(cellOffset);
+          newText = document.createTextNode('stall');
+          newCell.appendChild(newText);
+          cellOffset++;
+        }
+      }
+    }
+    newCell = row.insertCell(cellOffset);
+    newText = document.createTextNode(node);
     newCell.appendChild(newText);
+
+    cellOffset++;
+    return cellOffset;
+  }
+
+  addBlankCell(row: HTMLTableRowElement, cell: number): number {
+    let cellOffset = cell;
+    const newCell = row.insertCell(cellOffset);
+    const newText = document.createTextNode('');
+    newCell.appendChild(newText);
+    cellOffset++;
+    return cellOffset;
+
   }
 
   basicTiming(i: number) {
     const timingDiagram = (document.getElementById('timingDiagram') as HTMLTableElement);
     const newRow = timingDiagram.insertRow(i);
+    let cellToWrite = 0;
 
     for (let j = 0; j < i; j++) {
-      this.addCell(newRow, j, '');
+      cellToWrite = this.addBlankCell(newRow, cellToWrite);
     }
-
-    this.addCell(newRow, i, 'IF');
-    this.addCell(newRow, i + 1, 'ID');
-    this.addCell(newRow, i + 2, 'EX');
-    this.addCell(newRow, i + 3, 'M');
-    this.addCell(newRow, i + 4, 'W');
+    cellToWrite = this.addCell(newRow, cellToWrite, 'IF', i);
+    cellToWrite = this.addCell(newRow, cellToWrite, 'ID', i);
+    cellToWrite = this.addCell(newRow, cellToWrite, 'EX', i);
+    cellToWrite = this.addCell(newRow, cellToWrite, 'M', i);
+    cellToWrite = this.addCell(newRow, cellToWrite, 'W', i);
   }
 
   solveLoadHazard(i: number, instructionSet: Array<Instruction>) {
     let numInstructions = instructionSet.length <= 4 ? instructionSet.length : 4;
     const timingDiagram = (document.getElementById('timingDiagram') as HTMLTableElement);
     const newRow = timingDiagram.insertRow(i);
+    let cellToWrite = 0;
 
     for (let j = 0; j < i; j++) {
-      this.addCell(newRow, j, '');
+      cellToWrite = this.addBlankCell(newRow, cellToWrite);
     }
     while (numInstructions > 1) {
       if (instructionSet[i - numInstructions + 1].command === 'lw') {
         if (i - (i - numInstructions + 1) === 1) {
-          this.addCell(newRow, i, 'IF');
-          this.addCell(newRow, i + 1, 'ID');
-          this.addCell(newRow, i + 2, 'stall');
-        } else if (i - (i - numInstructions + 1) === 2) {
-          this.addCell(newRow, i, 'IF');
-          this.addCell(newRow, i + 1, 'stall');
-          this.addCell(newRow, i + 2, 'ID');
-        } else {
-          this.addCell(newRow, i, 'stall');
-          this.addCell(newRow, i + 1, 'IF');
-          this.addCell(newRow, i + 2, 'ID');
+          cellToWrite = this.addCell(newRow, cellToWrite, 'IF', i);
+          cellToWrite = this.addCell(newRow, cellToWrite, 'ID', i);
+          cellToWrite = this.addCell(newRow, cellToWrite, 'stall', i);
         }
-        }
+      }
       numInstructions--;
     }
 
-    this.addCell(newRow, i + 3, 'EX');
-    this.addCell(newRow, i + 4, 'M');
-    this.addCell(newRow, i + 5, 'W');
+    cellToWrite = this.addCell(newRow, cellToWrite, 'EX', i);
+    cellToWrite = this.addCell(newRow, cellToWrite, 'M', i);
+    cellToWrite = this.addCell(newRow, cellToWrite, 'W', i);
   }
 }
