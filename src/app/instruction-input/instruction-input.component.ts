@@ -20,6 +20,7 @@ export class InstructionInputComponent implements OnInit {
 
   submitInstructionSet() {
     (document.getElementById('$zero') as HTMLInputElement).value = '0';
+    this.clearPage();
     const instructionRows: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
     this.executeInstructionSet(instructionRows);
   }
@@ -27,8 +28,8 @@ export class InstructionInputComponent implements OnInit {
   clearPage() {
     (document.getElementById('hazardList') as HTMLInputElement).value = '';
     const numRows = (document.getElementById('timingDiagram') as HTMLTableElement).rows;
-    for (let i = 0; i < numRows.length; i++) {
-      (document.getElementById('timingDiagram') as HTMLTableElement).deleteRow(i);
+    while (numRows.length !== 0) {
+      (document.getElementById('timingDiagram') as HTMLTableElement).deleteRow(0);
     }
   }
 
@@ -148,17 +149,27 @@ export class InstructionInputComponent implements OnInit {
 
   displayHazard(instructionSet: Array<Instruction>, i: number): string {
     let hazards = '';
-    let numInstructions = instructionSet.length <= 3 ? instructionSet.length : 3;
+    let numInstructions = instructionSet.length <= 4 ? instructionSet.length : 4;
 
     while (numInstructions > 1) {
       if (instructionSet[i].usedRegisters.includes(instructionSet[i - numInstructions + 1].destinationRegister)) {
+        if (numInstructions === 4) {
+          hazards += 'Data Hazard: Instructions ' +
+          (i - numInstructions + 2) +
+          ' and ' +
+          (i + 1) +
+          ' use register ' +
+          instructionSet[i - numInstructions + 1].destinationRegister +
+          '. Implement write 1st half, read 2nd half of cycle.\n';
+        } else {
         hazards += 'Data Hazard: Instructions ' +
           (i - numInstructions + 2) +
           ' and ' +
           (i + 1) +
           ' use register ' +
           instructionSet[i - numInstructions + 1].destinationRegister +
-          '. Implement Fowarding.\n';
+          '. Implement fowarding.\n';
+        }
       }
       numInstructions--;
     }
