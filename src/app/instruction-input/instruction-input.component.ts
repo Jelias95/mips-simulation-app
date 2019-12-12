@@ -10,6 +10,7 @@ export class InstructionInputComponent implements OnInit {
   registers: Array<string>;
   memory: Array<number>;
   stallNeeded: boolean;
+  hazardList = '';
 
   constructor() { }
 
@@ -27,6 +28,7 @@ export class InstructionInputComponent implements OnInit {
 
   clearPage() {
     (document.getElementById('hazardList') as HTMLInputElement).value = '';
+    this.hazardList = '';
     const numRows = (document.getElementById('timingDiagram') as HTMLTableElement).rows;
     while (numRows.length !== 0) {
       (document.getElementById('timingDiagram') as HTMLTableElement).deleteRow(0);
@@ -87,33 +89,34 @@ export class InstructionInputComponent implements OnInit {
 
   executeInstructionSet(instructionRows: Array<string>) {
     const instructionSet: Array<Instruction> = new Array<Instruction>();
-    let hazardList = '';
     for (let i = 0; i < instructionRows.length; i++) {
       const parsedInstruction = instructionRows[i].valueOf().split(' ');
+      console.log(this.hazardList);
+      console.log(parsedInstruction[0].trim().toLowerCase());
       switch (parsedInstruction[0].trim().toLowerCase()) {
         case 'add': { }
         case 'addi': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.add(instructionSet[i]);
-          hazardList += this.displayHazard(instructionSet, i);
+          this.displayHazard(instructionSet, i);
           break;
         }
         case 'sub': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.sub(instructionSet[i]);
-          hazardList += this.displayHazard(instructionSet, i);
+          this.displayHazard(instructionSet, i);
           break;
         }
         case 'sw': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.store(instructionSet[i]);
-          hazardList += this.displayHazard(instructionSet, i);
+          this.displayHazard(instructionSet, i);
           break;
         }
         case 'lw': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.load(instructionSet[i]);
-          hazardList += this.displayHazard(instructionSet, i);
+          this.displayHazard(instructionSet, i);
           break;
         }
         default: {
@@ -122,8 +125,9 @@ export class InstructionInputComponent implements OnInit {
         }
       }
     }
-    hazardList.length > 0 ?
-      (document.getElementById('hazardList') as HTMLInputElement).value = hazardList
+    console.log(this.hazardList);
+    this.hazardList.length > 0 ?
+      (document.getElementById('hazardList') as HTMLInputElement).value = this.hazardList
       : (document.getElementById('hazardList') as HTMLInputElement).value = 'No Hazards Found';
   }
 
@@ -147,15 +151,14 @@ export class InstructionInputComponent implements OnInit {
       (document.getElementById((instruction.input1 + instruction.input2).toString()) as HTMLInputElement).value;
   }
 
-  displayHazard(instructionSet: Array<Instruction>, i: number): string {
-    let hazards = '';
+  displayHazard(instructionSet: Array<Instruction>, i: number) {
     let numInstructions = instructionSet.length <= 4 ? instructionSet.length : 4;
     let loadHazard = false;
     let structuralHazard = false;
 
     if (numInstructions > 3) {
       if (instructionSet[i - 3].command === 'lw' || instructionSet[i - 3].command === 'sw') {
-        hazards += 'Structural Hazard: Instructions ' +
+        this.hazardList += 'Structural Hazard: Instructions ' +
           (i + 1) +
           ' and ' +
           (i - 2) +
@@ -168,7 +171,7 @@ export class InstructionInputComponent implements OnInit {
       if (instructionSet[i].usedRegisters.includes(instructionSet[i - numInstructions + 1].destinationRegister)) {
         if (instructionSet[i - numInstructions + 1].command === 'lw') {
           if (i - (i - numInstructions + 1) === 1) {
-            hazards += 'Data Load Hazard: Instructions ' +
+            this.hazardList += 'Data Load Hazard: Instructions ' +
               (i + 1) +
               ' and ' +
               (i - numInstructions + 2) +
@@ -178,7 +181,7 @@ export class InstructionInputComponent implements OnInit {
             loadHazard = true;
           }
         } else if (numInstructions === 4) {
-          hazards += 'Data Hazard: Instructions ' +
+          this.hazardList += 'Data Hazard: Instructions ' +
             (i + 1) +
             ' and ' +
             (i - numInstructions + 2) +
@@ -186,7 +189,7 @@ export class InstructionInputComponent implements OnInit {
             instructionSet[i - numInstructions + 1].destinationRegister +
             '. Implement write 1st half, read 2nd half of cycle.\n';
         } else {
-          hazards += 'Data Hazard: Instructions ' +
+          this.hazardList += 'Data Hazard: Instructions ' +
             (i + 1) +
             ' and ' +
             (i - numInstructions + 2) +
@@ -198,7 +201,6 @@ export class InstructionInputComponent implements OnInit {
       numInstructions--;
     }
     loadHazard ? this.solveLoadHazard(i, instructionSet) : this.basicTiming(i);
-    return hazards;
   }
 
   addCell(row: HTMLTableRowElement, cell: number, node: string, currentInstruction: number): number {
@@ -209,16 +211,36 @@ export class InstructionInputComponent implements OnInit {
     if (currentInstruction > 0) {
       if (cellOffset < (document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells.length) {
         if ((document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells[cellOffset].innerText === node && node !== '') {
+          console.log('structural hazard');
           newCell = row.insertCell(cellOffset);
           newText = document.createTextNode('stall');
           newCell.appendChild(newText);
           cellOffset++;
+          console.log(this.hazardList);
+          this.hazardList += 'Structural Hazard: Instructions ' +
+          (currentInstruction + 1) +
+          ' and ' +
+          (currentInstruction) +
+          ' attempt ' +
+          node +
+          ' at the same time. Add Stall.\n';
+          console.log(this.hazardList);
         }
         if ((document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells[cellOffset].innerText === 'stall') {
+          console.log('stall hazard');
           newCell = row.insertCell(cellOffset);
           newText = document.createTextNode('stall');
           newCell.appendChild(newText);
           cellOffset++;
+          console.log(this.hazardList);
+          this.hazardList += 'Structural Hazard: Instructions ' +
+          (currentInstruction + 1) +
+          ' and ' +
+          (currentInstruction) +
+          ' attempt ' +
+          node +
+          ' at the same time. Add Stall.\n';
+          console.log(this.hazardList);
         }
       }
     }
