@@ -16,49 +16,65 @@ export class InstructionInputComponent implements OnInit {
   ngOnInit() {
     this.registers = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3', '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7', '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7', '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'];
 
-    // TODO: Memory is incorrect, look at how load and store word work
     this.memory = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   }
 
-  // TODO: Fix instruction set to use Instruction Model
-
   submitInstructionSet() {
     (document.getElementById('$zero') as HTMLInputElement).value = '0';
+    let instructionSet: Array<Instruction> = new Array<Instruction>();
     const instructionRows: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
     for (let i = 0; i < instructionRows.length; i++) {
-      createInstructionSet(instructionRows[i]);
-    }
-    let instructionSet: Array<Instruction>;
-    for (let i = 0; i < instructionRows.length; i++) {
-      instructionSet[i] = instructionRows[i].valueOf().split(' ');
+      instructionSet[i] = this.createInstruction(instructionRows[i]);
     }
     this.executeInstructionSet(instructionSet);
   }
 
-  createInstructionSet(instruction: Array<string>): Array<Instruction> {
-    let parsedInstruction: Array<Instruction>;
-    const command = instruction[0].trim().toLowerCase();
-    switch (command) {
-      case 'add': {
-        parsedInstruction = [command: instruction[0].trim().toLowerCase()]
+  createInstruction(instructionRow: any): Instruction {
+    let instruction: Instruction = new Instruction;
+    const parsedInstruction = instructionRow.valueOf().split(' ');
+    switch (parsedInstruction[0].trim().toLowerCase()) {
+      case 'add': { }
+      case 'sub': {
+        instruction = {
+          command: parsedInstruction[0].trim().toLowerCase(),
+          destinationRegister: parsedInstruction[1].replace(',', '').trim().toLowerCase(),
+          input1: Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value),
+          input2: Number((document.getElementById(parsedInstruction[3].trim()) as HTMLInputElement).value)
+        };
+        break;
+      }
+      case 'addi': { }
+      case 'subi': {
+        instruction = {
+          command: parsedInstruction[0].trim().toLowerCase(),
+          destinationRegister: parsedInstruction[1].replace(',', '').trim().toLowerCase(),
+          input1: Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value),
+          input2: Number(parsedInstruction[3].trim())
+        };
+        break;
+      }
+      default: {
+        console.log('OOPS! Unable to find command!');
+        break;
       }
     }
-    return parsedInstruction;
+    return instruction;
   }
 
-  executeInstructionSet(instructionSet: Array<Array<string>>) {
+  executeInstructionSet(instructionSet: Array<Instruction>) {
     this.hazardDisplay = '';
     for (let i = 0; i < instructionSet.length; i++) {
-      const command = instructionSet[i][0].trim().toLowerCase();
-      switch (command) {
-        case 'add': {
-          this.add(instructionSet, i);
-          this.hazardDisplay += this.displayHazard(instructionSet, i);
+      switch (instructionSet[i].command) {
+        case 'add': { }
+        case 'addi': {
+          this.add(instructionSet[i]);
+          this.hazardDisplay += this.displayHazard(instructionSet[i], i);
           break;
         }
-        case 'addi': {
-          this.addi(instructionSet, i);
-          this.hazardDisplay += this.displayHazard(instructionSet, i);
+        case 'sub': { }
+        case 'subi': {
+          this.sub(instructionSet[i]);
+          this.hazardDisplay += this.displayHazard(instructionSet[i], i);
           break;
         }
         case 'sw': {
@@ -68,10 +84,6 @@ export class InstructionInputComponent implements OnInit {
         }
         case 'lw': {
           this.load(instructionSet, i);
-          break;
-        }
-        case 'sub': {
-          this.sub(instructionSet, i);
           break;
         }
         default: {
@@ -86,22 +98,14 @@ export class InstructionInputComponent implements OnInit {
   }
 
 
-  add(parsedInstruction: Array<Array<string>>, i: number) {
-    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
-
-    const firstNum = Number((document.getElementById(parsedInstruction[i][2].replace(',', '').trim()) as HTMLInputElement).value);
-    const secondNum = Number((document.getElementById(parsedInstruction[i][3].replace(',', '').trim()) as HTMLInputElement).value);
-
-    (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
+  add(instruction: Instruction) {
+    (document.getElementById(instruction.destinationRegister) as HTMLInputElement).value =
+      (instruction.input1 + instruction.input2).toString();
   }
 
-  addi(parsedInstruction: Array<Array<string>>, i: number) {
-    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
-
-    const firstNum = Number((document.getElementById(parsedInstruction[i][2].replace(',', '').trim()) as HTMLInputElement).value);
-    const secondNum = Number(parsedInstruction[i][3].replace(',', '').trim());
-
-    (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
+  sub(instruction: Instruction) {
+    (document.getElementById(instruction.destinationRegister) as HTMLInputElement).value =
+      (instruction.input1 - instruction.input2).toString();
   }
 
   store(parsedInstruction: Array<Array<string>>, i: number) {
@@ -127,24 +131,15 @@ export class InstructionInputComponent implements OnInit {
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (document.getElementById(newAddress) as HTMLInputElement).value;
   }
 
-  sub(parsedInstruction: Array<Array<string>>, i: number) {
-    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
-
-    const firstNum = Number((document.getElementById(parsedInstruction[i][2].replace(',', '').trim()) as HTMLInputElement).value);
-    const secondNum = Number((document.getElementById(parsedInstruction[i][3].replace(',', '').trim()) as HTMLInputElement).value);
-
-    (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum - secondNum).toString();
-  }
-
-  displayHazard(instructionSet: Array<Array<string>>, i: number): string {
+  displayHazard(instruction: Instruction, i: number): string {
     let hazards = '';
     const hazardTable = (document.getElementById('hazardTable') as HTMLTableElement);
 
     if (i === 1) {
-      if (instructionSet[i][2].replace(',' , '').trim() === instructionSet[i - 1][1].replace(',', '').trim() ||
+      if (instructionSet[i][2].replace(',', '').trim() === instructionSet[i - 1][1].replace(',', '').trim() ||
         instructionSet[i][3].replace(',', '').trim() === instructionSet[i - 1][1].replace(',', '').trim()) {
-          hazards += 'Data Hazard: Instructions ' + (i - 1) + ' and ' + i + ' use register ' + instructionSet[i - 1][1].replace(',', '').trim() + '. Implement Fowarding.';
-        }
+        hazards += 'Data Hazard: Instructions ' + (i - 1) + ' and ' + i + ' use register ' + instructionSet[i - 1][1].replace(',', '').trim() + '. Implement Fowarding.';
+      }
     }
     this.noStall(i, hazardTable);
     return hazards;
