@@ -21,7 +21,7 @@ export class InstructionInputComponent implements OnInit {
 
   submitInstructionSet() {
     (document.getElementById('$zero') as HTMLInputElement).value = '0';
-    let instructionSet: Array<Instruction> = new Array<Instruction>();
+    const instructionSet: Array<Instruction> = new Array<Instruction>();
     const instructionRows: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
     for (let i = 0; i < instructionRows.length; i++) {
       instructionSet[i] = this.createInstruction(instructionRows[i]);
@@ -30,7 +30,7 @@ export class InstructionInputComponent implements OnInit {
   }
 
   createInstruction(instructionRow: any): Instruction {
-    let instruction: Instruction = new Instruction;
+    let instruction: Instruction = new Instruction();
     const parsedInstruction = instructionRow.valueOf().split(' ');
     switch (parsedInstruction[0].trim().toLowerCase()) {
       case 'add': { }
@@ -39,7 +39,11 @@ export class InstructionInputComponent implements OnInit {
           command: parsedInstruction[0].trim().toLowerCase(),
           destinationRegister: parsedInstruction[1].replace(',', '').trim().toLowerCase(),
           input1: Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value),
-          input2: Number((document.getElementById(parsedInstruction[3].trim()) as HTMLInputElement).value)
+          input2: Number((document.getElementById(parsedInstruction[3].trim()) as HTMLInputElement).value),
+          usedRegisters: [
+            parsedInstruction[2].replace(',', '').trim(),
+            parsedInstruction[3].trim()
+          ]
         };
         break;
       }
@@ -49,7 +53,10 @@ export class InstructionInputComponent implements OnInit {
           command: parsedInstruction[0].trim().toLowerCase(),
           destinationRegister: parsedInstruction[1].replace(',', '').trim().toLowerCase(),
           input1: Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value),
-          input2: Number(parsedInstruction[3].trim())
+          input2: Number(parsedInstruction[3].trim()),
+          usedRegisters: [
+            parsedInstruction[2].replace(',', '').trim()
+          ]
         };
         break;
       }
@@ -60,7 +67,10 @@ export class InstructionInputComponent implements OnInit {
           command: parsedInstruction[0].trim().toLowerCase(),
           destinationRegister: parsedInstruction[1].replace(',', '').trim().toLowerCase(),
           input1: Number(parseAddress[0].trim()) / 4,
-          input2: Number((document.getElementById(parseAddress[1].replace(')', '').trim().toLowerCase()) as HTMLInputElement).value)
+          input2: Number((document.getElementById(parseAddress[1].replace(')', '').trim().toLowerCase()) as HTMLInputElement).value),
+          usedRegisters: [
+            parseAddress[1].replace(')', '').trim().toLowerCase()
+          ]
         };
       }
       default: {
@@ -78,7 +88,7 @@ export class InstructionInputComponent implements OnInit {
         case 'add': { }
         case 'addi': {
           this.add(instructionSet[i]);
-          this.hazardDisplay += this.displayHazard(instructionSet[i], i);
+          this.hazardDisplay += this.displayHazard(instructionSet, i);
           break;
         }
         case 'sub': { }
@@ -127,14 +137,14 @@ export class InstructionInputComponent implements OnInit {
       (document.getElementById((instruction.input1 + instruction.input2).toString()) as HTMLInputElement).value;
   }
 
-  displayHazard(instruction: Instruction, i: number): string {
+  displayHazard(instructionSet: Array<Instruction>, i: number): string {
     let hazards = '';
     const hazardTable = (document.getElementById('hazardTable') as HTMLTableElement);
 
     if (i === 1) {
-      if (instructionSet[i][2].replace(',', '').trim() === instructionSet[i - 1][1].replace(',', '').trim() ||
-        instructionSet[i][3].replace(',', '').trim() === instructionSet[i - 1][1].replace(',', '').trim()) {
-        hazards += 'Data Hazard: Instructions ' + (i - 1) + ' and ' + i + ' use register ' + instructionSet[i - 1][1].replace(',', '').trim() + '. Implement Fowarding.';
+      if (instructionSet[i].usedRegisters.includes(instructionSet[i - 1].destinationRegister))
+      {
+        hazards += 'Data Hazard: Instructions ' + (i - 1) + ' and ' + i + ' use register ' + instructionSet[i - 1].destinationRegister + '. Implement Fowarding.';
       }
     }
     this.noStall(i, hazardTable);

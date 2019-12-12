@@ -3,4 +3,5 @@ export class Instruction {
   destinationRegister: string;
   input1: number;
   input2: number;
+  usedRegisters: Array<string>;
 }
