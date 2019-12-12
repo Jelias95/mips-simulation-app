@@ -53,6 +53,16 @@ export class InstructionInputComponent implements OnInit {
         };
         break;
       }
+      case 'lw': { }
+      case 'sw': {
+        const parseAddress = parsedInstruction[2].valueOf().split('(');
+        instruction = {
+          command: parsedInstruction[0].trim().toLowerCase(),
+          destinationRegister: parsedInstruction[1].replace(',', '').trim().toLowerCase(),
+          input1: Number(parseAddress[0].trim()) / 4,
+          input2: Number((document.getElementById(parseAddress[1].replace(')', '').trim().toLowerCase()) as HTMLInputElement).value)
+        };
+      }
       default: {
         console.log('OOPS! Unable to find command!');
         break;
@@ -78,12 +88,11 @@ export class InstructionInputComponent implements OnInit {
           break;
         }
         case 'sw': {
-          console.log(instructionSet[i]);
-          this.store(instructionSet, i);
+          this.store(instructionSet[i]);
           break;
         }
         case 'lw': {
-          this.load(instructionSet, i);
+          this.load(instructionSet[i]);
           break;
         }
         default: {
@@ -108,27 +117,14 @@ export class InstructionInputComponent implements OnInit {
       (instruction.input1 - instruction.input2).toString();
   }
 
-  store(parsedInstruction: Array<Array<string>>, i: number) {
-    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
-
-    const parseAddress = parsedInstruction[i][2].valueOf().split('(');
-    const offset = Number(parseAddress[0].trim()) / 4;
-    const addressRegister = parseAddress[1].replace(')', '').trim().toLowerCase();
-    const address = Number((document.getElementById(addressRegister) as HTMLInputElement).value);
-    const newAddress = (offset + address).toString();
-
-    (document.getElementById(newAddress) as HTMLInputElement).value = (document.getElementById(destinationRegister) as HTMLInputElement).value;
+  store(instruction: Instruction) {
+    (document.getElementById((instruction.input1 + instruction.input2).toString()) as HTMLInputElement).value =
+      (document.getElementById(instruction.destinationRegister) as HTMLInputElement).value;
   }
 
-  load(parsedInstruction: Array<Array<string>>, i: number) {
-    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
-
-    const parseAddress = parsedInstruction[i][2].valueOf().split('(');
-    const offset = Number(parseAddress[0].trim()) / 4;
-    const addressRegister = Number(parseAddress[1].replace(')', '').trim().toLowerCase());
-    const newAddress = (offset + addressRegister).toString();
-
-    (document.getElementById(destinationRegister) as HTMLInputElement).value = (document.getElementById(newAddress) as HTMLInputElement).value;
+  load(instruction: Instruction) {
+    (document.getElementById(instruction.destinationRegister) as HTMLInputElement).value =
+      (document.getElementById((instruction.input1 + instruction.input2).toString()) as HTMLInputElement).value;
   }
 
   displayHazard(instruction: Instruction, i: number): string {
