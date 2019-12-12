@@ -1,25 +1,52 @@
-<div class="parent-container" fxLayout fxLayout.xs="column" fxLayoutAlign="center" fxLayoutGap="10px"
-  fxLayoutGap.xs="0">
+<div
+  class="parent-container"
+  fxLayout
+  fxLayout.xs="column"
+  fxLayoutAlign="center"
+  fxLayoutGap="10px"
+  fxLayoutGap.xs="0"
+>
   <div class="memory-container" fxFlex>
     <mat-card>
       <h2>System Memory</h2>
       <mat-form-field *ngFor="let slot of memory" appearance="outline">
-        <input matInput id="{{ slot }}" class="memory-display-container" value = "0" disabled />
+        <input
+          matInput
+          id="{{ slot }}"
+          class="memory-display-container"
+          value="0"
+          disabled
+        />
         <span matPrefix> {{ slot }}: </span>
       </mat-form-field>
     </mat-card>
   </div>
-  <div class="left-container" fxFlex="60%" fxLayout="column" fxLayoutAlign="center" fxLayoutGap="10px"
-    fxLayoutGap.xs="0">
+  <div
+    class="left-container"
+    fxFlex="60%"
+    fxLayout="column"
+    fxLayoutAlign="center"
+    fxLayoutGap="10px"
+    fxLayoutGap.xs="0"
+  >
     <div class="instructions-input-container">
       <mat-card fxLayout="column">
         <h2>Input Instructions</h2>
         <mat-form-field appearance="outline">
           <mat-label>Input Instructions</mat-label>
-          <textarea matInput matTextareaAutosize matAutosizeMinRows="5" id="instructionList"></textarea>
+          <textarea
+            matInput
+            matTextareaAutosize
+            matAutosizeMinRows="5"
+            id="instructionList"
+          ></textarea>
         </mat-form-field>
-        <button mat-raised-button (click)="submitInstructionSet()">Execute Instructions</button>
-        <button mat-raised-button (click)="clearPage()">Clear Timing Diagram and Hazard List</button>
+        <button mat-raised-button (click)="submitInstructionSet()">
+          Execute Instructions
+        </button>
+        <button mat-raised-button (click)="clearPage()">
+          Clear Timing Diagram and Hazard List
+        </button>
       </mat-card>
     </div>
 
@@ -28,7 +55,12 @@
         <h2>List of Hazards</h2>
         <mat-form-field appearance="outline">
           <mat-label>List of Hazards</mat-label>
-          <textarea matInput matTextareaAutosize matAutosizeMinRows="5" id="hazardList"></textarea>
+          <textarea
+            matInput
+            matTextareaAutosize
+            matAutosizeMinRows="5"
+            id="hazardList"
+          ></textarea>
         </mat-form-field>
       </mat-card>
     </div>
@@ -36,8 +68,7 @@
     <div class="instruction-hazard-container">
       <mat-card fxLayout="column">
         <h2>Timing Diagram</h2>
-        <table id="timingDiagram">
-        </table>
+        <table id="timingDiagram"></table>
       </mat-card>
     </div>
   </div>
@@ -46,7 +77,13 @@
     <mat-card>
       <h2>Registers</h2>
       <mat-form-field *ngFor="let register of registers" appearance="outline">
-        <input matInput id="{{ register }}" class="register-display-container" value = "0" disabled />
+        <input
+          matInput
+          id="{{ register }}"
+          class="register-display-container"
+          value="0"
+          disabled
+        />
         <span matPrefix> {{ register }}: </span>
       </mat-form-field>
     </mat-card>

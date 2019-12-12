@@ -218,12 +218,12 @@ export class InstructionInputComponent implements OnInit {
           cellOffset++;
           console.log(this.hazardList);
           this.hazardList += 'Structural Hazard: Instructions ' +
-          (currentInstruction + 1) +
-          ' and ' +
-          (currentInstruction) +
-          ' attempt ' +
-          node +
-          ' at the same time. Add Stall.\n';
+            (currentInstruction + 1) +
+            ' and ' +
+            (currentInstruction) +
+            ' attempt ' +
+            node +
+            ' at the same time. Add Stall.\n';
           console.log(this.hazardList);
         }
         if ((document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells[cellOffset].innerText === 'stall') {
@@ -234,12 +234,12 @@ export class InstructionInputComponent implements OnInit {
           cellOffset++;
           console.log(this.hazardList);
           this.hazardList += 'Structural Hazard: Instructions ' +
-          (currentInstruction + 1) +
-          ' and ' +
-          (currentInstruction) +
-          ' attempt ' +
-          node +
-          ' at the same time. Add Stall.\n';
+            (currentInstruction + 1) +
+            ' and ' +
+            (currentInstruction) +
+            ' attempt ' +
+            node +
+            ' at the same time. Add Stall.\n';
           console.log(this.hazardList);
         }
       }
