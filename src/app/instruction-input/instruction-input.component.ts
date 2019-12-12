@@ -21,15 +21,11 @@ export class InstructionInputComponent implements OnInit {
 
   submitInstructionSet() {
     (document.getElementById('$zero') as HTMLInputElement).value = '0';
-    const instructionSet: Array<Instruction> = new Array<Instruction>();
     const instructionRows: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
-    for (let i = 0; i < instructionRows.length; i++) {
-      instructionSet[i] = this.createInstruction(instructionRows[i]);
-    }
-    this.executeInstructionSet(instructionSet);
+    this.executeInstructionSet(instructionRows);
   }
 
-  createInstruction(instructionRow: any): Instruction {
+  createInstruction(instructionRow: string): Instruction {
     let instruction: Instruction = new Instruction();
     const parsedInstruction = instructionRow.valueOf().split(' ');
     switch (parsedInstruction[0].trim().toLowerCase()) {
@@ -72,6 +68,7 @@ export class InstructionInputComponent implements OnInit {
             parseAddress[1].replace(')', '').trim().toLowerCase()
           ]
         };
+        break;
       }
       default: {
         console.log('OOPS! Unable to find command!');
@@ -81,27 +78,33 @@ export class InstructionInputComponent implements OnInit {
     return instruction;
   }
 
-  executeInstructionSet(instructionSet: Array<Instruction>) {
+  executeInstructionSet(instructionRows: Array<string>) {
+    const instructionSet: Array<Instruction> = new Array<Instruction>();
     this.hazardDisplay = '';
-    for (let i = 0; i < instructionSet.length; i++) {
-      switch (instructionSet[i].command) {
+    for (let i = 0; i < instructionRows.length; i++) {
+      const parsedInstruction = instructionRows[i].valueOf().split(' ');
+      switch (parsedInstruction[0].trim().toLowerCase()) {
         case 'add': { }
         case 'addi': {
+          instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.add(instructionSet[i]);
           this.hazardDisplay += this.displayHazard(instructionSet, i);
           break;
         }
         case 'sub': { }
         case 'subi': {
+          instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.sub(instructionSet[i]);
-          this.hazardDisplay += this.displayHazard(instructionSet[i], i);
+          this.hazardDisplay += this.displayHazard(instructionSet, i);
           break;
         }
         case 'sw': {
+          instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.store(instructionSet[i]);
           break;
         }
         case 'lw': {
+          instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.load(instructionSet[i]);
           break;
         }
@@ -139,13 +142,20 @@ export class InstructionInputComponent implements OnInit {
 
   displayHazard(instructionSet: Array<Instruction>, i: number): string {
     let hazards = '';
+    let numInstructions = instructionSet.length <= 3 ? instructionSet.length : 3;
     const hazardTable = (document.getElementById('hazardTable') as HTMLTableElement);
 
-    if (i === 1) {
-      if (instructionSet[i].usedRegisters.includes(instructionSet[i - 1].destinationRegister))
-      {
-        hazards += 'Data Hazard: Instructions ' + (i - 1) + ' and ' + i + ' use register ' + instructionSet[i - 1].destinationRegister + '. Implement Fowarding.';
+    while (numInstructions > 1) {
+      if (instructionSet[i].usedRegisters.includes(instructionSet[i - numInstructions + 1].destinationRegister)) {
+        hazards += 'Data Hazard: Instructions ' +
+          (i - numInstructions + 1) +
+          ' and ' +
+          i +
+          ' use register ' +
+          instructionSet[i - numInstructions + 1].destinationRegister +
+          '. Implement Fowarding.\n';
       }
+      numInstructions--;
     }
     this.noStall(i, hazardTable);
     return hazards;
