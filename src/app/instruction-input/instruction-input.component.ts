@@ -9,12 +9,13 @@ import { Instruction } from '../shared/models/instruction.model';
 export class InstructionInputComponent implements OnInit {
   registers: Array<string>;
   memory: Array<number>;
+  stallNeeded: boolean;
 
   constructor() { }
 
   ngOnInit() {
+    this.stallNeeded = false;
     this.registers = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3', '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7', '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7', '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra'];
-
     this.memory = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
   }
 
@@ -50,8 +51,7 @@ export class InstructionInputComponent implements OnInit {
         };
         break;
       }
-      case 'addi': { }
-      case 'subi': {
+      case 'addi': {
         instruction = {
           command: parsedInstruction[0].trim().toLowerCase(),
           destinationRegister: parsedInstruction[1].replace(',', '').trim().toLowerCase(),
@@ -98,8 +98,7 @@ export class InstructionInputComponent implements OnInit {
           hazardList += this.displayHazard(instructionSet, i);
           break;
         }
-        case 'sub': { }
-        case 'subi': {
+        case 'sub': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.sub(instructionSet[i]);
           hazardList += this.displayHazard(instructionSet, i);
@@ -151,7 +150,19 @@ export class InstructionInputComponent implements OnInit {
   displayHazard(instructionSet: Array<Instruction>, i: number): string {
     let hazards = '';
     let numInstructions = instructionSet.length <= 4 ? instructionSet.length : 4;
-    let stallNeeded = false;
+    let loadHazard = false;
+    let structuralHazard = false;
+
+    if (numInstructions > 3) {
+      if (instructionSet[i - 3].command === 'lw' || instructionSet[i - 3].command === 'sw') {
+        hazards += 'Structural Hazard: Instructions ' +
+          (i + 1) +
+          ' and ' +
+          (i - 2) +
+          ' access memory at the same time. Add CPU hardware.\n';
+        structuralHazard = true;
+      }
+    }
 
     while (numInstructions > 1) {
       if (instructionSet[i].usedRegisters.includes(instructionSet[i - numInstructions + 1].destinationRegister)) {
@@ -164,9 +175,9 @@ export class InstructionInputComponent implements OnInit {
               ' use register ' +
               instructionSet[i - numInstructions + 1].destinationRegister +
               '. Implement pipeline interlock.\n';
-            stallNeeded = true;
+            loadHazard = true;
           } else {
-            stallNeeded = true;
+            loadHazard = true;
           }
         } else if (numInstructions === 4) {
           hazards += 'Data Hazard: Instructions ' +
@@ -188,16 +199,7 @@ export class InstructionInputComponent implements OnInit {
       }
       numInstructions--;
     }
-    if (numInstructions > 3) {
-      if (instructionSet[i - 3].command === 'lw' || instructionSet[i - 3].command === 'sw') {
-        hazards += 'Structural Hazard: Instructions ' +
-          (i + 1) +
-          ' and ' +
-          (i - 2) +
-          ' access memory at the same time. Add CPU hardware.\n';
-      }
-    }
-    stallNeeded ? this.solveLoadHazard(i, instructionSet) : this.basicTiming(i, instructionSet[i]);
+    loadHazard ? this.solveLoadHazard(i, instructionSet) : this.basicTiming(i);
     return hazards;
   }
 
@@ -207,7 +209,7 @@ export class InstructionInputComponent implements OnInit {
     newCell.appendChild(newText);
   }
 
-  basicTiming(i: number, instruction: Instruction) {
+  basicTiming(i: number) {
     const timingDiagram = (document.getElementById('timingDiagram') as HTMLTableElement);
     const newRow = timingDiagram.insertRow(i);
 
