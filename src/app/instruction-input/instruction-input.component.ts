@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Instruction } from '../shared/models/instruction.model';
 
 @Component({
   selector: 'app-instruction-input',
@@ -19,15 +20,30 @@ export class InstructionInputComponent implements OnInit {
     this.memory = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
   }
 
+  // TODO: Fix instruction set to use Instruction Model
+
   submitInstructionSet() {
     (document.getElementById('$zero') as HTMLInputElement).value = '0';
     const instructionRows: Array<string> = (document.getElementById('instructionList') as HTMLInputElement).value.split('\n');
-    let instructionSet: Array<Array<string>> = new Array<Array<string>>();
+    for (let i = 0; i < instructionRows.length; i++) {
+      createInstructionSet(instructionRows[i]);
+    }
+    let instructionSet: Array<Instruction>;
     for (let i = 0; i < instructionRows.length; i++) {
       instructionSet[i] = instructionRows[i].valueOf().split(' ');
-      console.log(instructionSet);
     }
     this.executeInstructionSet(instructionSet);
+  }
+
+  createInstructionSet(instruction: Array<string>): Array<Instruction> {
+    let parsedInstruction: Array<Instruction>;
+    const command = instruction[0].trim().toLowerCase();
+    switch (command) {
+      case 'add': {
+        parsedInstruction = [command: instruction[0].trim().toLowerCase()]
+      }
+    }
+    return parsedInstruction;
   }
 
   executeInstructionSet(instructionSet: Array<Array<string>>) {
@@ -43,24 +59,21 @@ export class InstructionInputComponent implements OnInit {
         case 'addi': {
           this.addi(instructionSet, i);
           this.hazardDisplay += this.displayHazard(instructionSet, i);
-          // this.displayHazardi(i);
           break;
         }
-        // case 'sw': {
-        //   this.store(parsedInstruction);
-        //   this.insertInitialInstruction(i);
-        //   break;
-        // }
-        // case 'lw': {
-        //   this.load(parsedInstruction);
-        //   this.insertInitialInstruction(i);
-        //   break;
-        // }
-        // case 'sub': {
-        //   this.sub(parsedInstruction);
-        //   this.insertInitialInstruction(i);
-        //   break;
-        // }
+        case 'sw': {
+          console.log(instructionSet[i]);
+          this.store(instructionSet, i);
+          break;
+        }
+        case 'lw': {
+          this.load(instructionSet, i);
+          break;
+        }
+        case 'sub': {
+          this.sub(instructionSet, i);
+          break;
+        }
         default: {
           console.log('OOPS! Unable to find command!');
           break;
@@ -91,33 +104,34 @@ export class InstructionInputComponent implements OnInit {
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum + secondNum).toString();
   }
 
-  store(parsedInstruction: Array<string>) {
-    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+  store(parsedInstruction: Array<Array<string>>, i: number) {
+    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
 
-    const parseAddress = parsedInstruction[2].valueOf().split('(');
-    const offset = parseAddress[0].trim();
+    const parseAddress = parsedInstruction[i][2].valueOf().split('(');
+    const offset = Number(parseAddress[0].trim()) / 4;
     const addressRegister = parseAddress[1].replace(')', '').trim().toLowerCase();
-    const newAddress = (+offset + +addressRegister).toString();
+    const address = Number((document.getElementById(addressRegister) as HTMLInputElement).value);
+    const newAddress = (offset + address).toString();
 
     (document.getElementById(newAddress) as HTMLInputElement).value = (document.getElementById(destinationRegister) as HTMLInputElement).value;
   }
 
-  load(parsedInstruction: Array<string>) {
-    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+  load(parsedInstruction: Array<Array<string>>, i: number) {
+    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
 
-    const parseAddress = parsedInstruction[2].valueOf().split('(');
-    const offset = parseAddress[0].trim();
-    const addressRegister = parseAddress[1].replace(')', '').trim().toLowerCase();
-    const newAddress = (+offset + +addressRegister).toString();
+    const parseAddress = parsedInstruction[i][2].valueOf().split('(');
+    const offset = Number(parseAddress[0].trim()) / 4;
+    const addressRegister = Number(parseAddress[1].replace(')', '').trim().toLowerCase());
+    const newAddress = (offset + addressRegister).toString();
 
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (document.getElementById(newAddress) as HTMLInputElement).value;
   }
 
-  sub(parsedInstruction: Array<string>) {
-    const destinationRegister = parsedInstruction[1].replace(',', '').trim().toLowerCase();
+  sub(parsedInstruction: Array<Array<string>>, i: number) {
+    const destinationRegister = parsedInstruction[i][1].replace(',', '').trim().toLowerCase();
 
-    const firstNum = Number((document.getElementById(parsedInstruction[2].replace(',', '').trim()) as HTMLInputElement).value);
-    const secondNum = Number((document.getElementById(parsedInstruction[3].replace(',', '').trim()) as HTMLInputElement).value);
+    const firstNum = Number((document.getElementById(parsedInstruction[i][2].replace(',', '').trim()) as HTMLInputElement).value);
+    const secondNum = Number((document.getElementById(parsedInstruction[i][3].replace(',', '').trim()) as HTMLInputElement).value);
 
     (document.getElementById(destinationRegister) as HTMLInputElement).value = (firstNum - secondNum).toString();
   }
