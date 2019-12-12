@@ -109,11 +109,13 @@ export class InstructionInputComponent implements OnInit {
         case 'sw': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
           this.store(instructionSet[i]);
+          hazardList += this.displayHazard(instructionSet, i);
           break;
         }
         case 'lw': {
           instructionSet[i] = this.createInstruction(instructionRows[i]);
-          this.load(instructionSet[i]);
+          // this.load(instructionSet[i]);
+          hazardList += this.displayHazard(instructionSet, i);
           break;
         }
         default: {
@@ -150,22 +152,36 @@ export class InstructionInputComponent implements OnInit {
   displayHazard(instructionSet: Array<Instruction>, i: number): string {
     let hazards = '';
     let numInstructions = instructionSet.length <= 4 ? instructionSet.length : 4;
+    let stallNeeded = false;
 
     while (numInstructions > 1) {
       if (instructionSet[i].usedRegisters.includes(instructionSet[i - numInstructions + 1].destinationRegister)) {
-        if (numInstructions === 4) {
+        if (instructionSet[i - numInstructions + 1].command === 'lw') {
+          if (i - (i - numInstructions + 1) === 1) {
+            hazards += 'Data Load Hazard: Instructions ' +
+              (i + 1) +
+              ' and ' +
+              (i - numInstructions + 2) +
+              ' use register ' +
+              instructionSet[i - numInstructions + 1].destinationRegister +
+              '. Implement pipeline interlock.\n';
+            stallNeeded = true;
+          } else {
+            stallNeeded = true;
+          }
+        } else if (numInstructions === 4) {
           hazards += 'Data Hazard: Instructions ' +
-          (i - numInstructions + 2) +
-          ' and ' +
           (i + 1) +
+          ' and ' +
+          (i - numInstructions + 2) +
           ' use register ' +
           instructionSet[i - numInstructions + 1].destinationRegister +
           '. Implement write 1st half, read 2nd half of cycle.\n';
         } else {
         hazards += 'Data Hazard: Instructions ' +
-          (i - numInstructions + 2) +
-          ' and ' +
           (i + 1) +
+          ' and ' +
+          (i - numInstructions + 2) +
           ' use register ' +
           instructionSet[i - numInstructions + 1].destinationRegister +
           '. Implement fowarding.\n';
@@ -173,38 +189,81 @@ export class InstructionInputComponent implements OnInit {
       }
       numInstructions--;
     }
-    this.noStall(i);
+    stallNeeded ? this.solveLoadHazard(i, instructionSet) : this.basicTiming(i, instructionSet[i]);
     return hazards;
   }
 
-  noStall(i: number) {
+  addCell(row: HTMLTableRowElement, cell: number, node: string) {
+    const newCell = row.insertCell(cell);
+    const newText = document.createTextNode(node);
+    newCell.appendChild(newText);
+  }
+
+  basicTiming(i: number, instruction: Instruction) {
+    console.log('basic timing: ' + instruction.command + i);
     const timingDiagram = (document.getElementById('timingDiagram') as HTMLTableElement);
     const newRow = timingDiagram.insertRow(i);
 
     for (let j = 0; j < i; j++) {
-      const newCell = newRow.insertCell(j);
-      const newText = document.createTextNode('');
-      newCell.appendChild(newText);
+      this.addCell(newRow, j, '');
     }
 
-    let newCell = newRow.insertCell(i);
-    let newText = document.createTextNode('IF');
-    newCell.appendChild(newText);
+    this.addCell(newRow, i, 'IF');
+    this.addCell(newRow, i + 1, 'ID');
+    this.addCell(newRow, i + 2, 'EX');
+    this.addCell(newRow, i + 3, 'M');
+    this.addCell(newRow, i + 4, 'W');
+  }
 
-    newCell = newRow.insertCell(i + 1);
-    newText = document.createTextNode('ID');
-    newCell.appendChild(newText);
+  // TODO: Fix Problem running this code:
+  // lw $t0, 0($zero)
+  // add $t1, $t0, $zero
+  // addi $t2, $t0, 5
+  // addi $t3, $t0, 2
 
-    newCell = newRow.insertCell(i + 2);
-    newText = document.createTextNode('EX');
-    newCell.appendChild(newText);
+  solveLoadHazard(i: number, instructionSet: Array<Instruction>) {
+    console.log('load hazard solve: ' + instructionSet[i].command + i);
+    let numInstructions = instructionSet.length <= 3 ? instructionSet.length : 3;
+    const timingDiagram = (document.getElementById('timingDiagram') as HTMLTableElement);
+    const newRow = timingDiagram.insertRow(i);
 
-    newCell = newRow.insertCell(i + 3);
-    newText = document.createTextNode('M');
-    newCell.appendChild(newText);
+    for (let j = 0; j < i; j++) {
+      this.addCell(newRow, j, '');
+    }
+console.log('start while');
+    while (numInstructions > 1) {
+      console.log('while');
+      if (instructionSet[i].usedRegisters.includes(instructionSet[i - numInstructions + 1].destinationRegister)) {
+        console.log('first if');
+        if (instructionSet[i - numInstructions + 1].command === 'lw') {
+          console.log('second if');
+          if (i - (i - numInstructions + 1) === 1) {
+            console.log('scenario one');
+            this.addCell(newRow, i, 'IF');
+            this.addCell(newRow, i + 1, 'ID');
+            this.addCell(newRow, i + 2, 'stall');
+          } else if (i - (i - numInstructions + 1) === 2) {
+            console.log('scenario two');
+            this.addCell(newRow, i, 'IF');
+            this.addCell(newRow, i + 1, 'stall');
+            this.addCell(newRow, i + 2, 'ID');
+          } else {
+            console.log('scenario three');
+            this.addCell(newRow, i, 'stall');
+            console.log('stall');
+            this.addCell(newRow, i + 1, 'IF');
+            console.log('if');
+            this.addCell(newRow, i + 2, 'ID');
+            console.log('id');
+          }
+        }
+      }
+      numInstructions--;
+      console.log('minus num');
+    }
 
-    newCell = newRow.insertCell(i + 4);
-    newText = document.createTextNode('W');
-    newCell.appendChild(newText);
+    this.addCell(newRow, i + 3, 'EX');
+    this.addCell(newRow, i + 4, 'M');
+    this.addCell(newRow, i + 5, 'W');
   }
 }
