@@ -91,8 +91,6 @@ export class InstructionInputComponent implements OnInit {
     const instructionSet: Array<Instruction> = new Array<Instruction>();
     for (let i = 0; i < instructionRows.length; i++) {
       const parsedInstruction = instructionRows[i].valueOf().split(' ');
-      console.log(this.hazardList);
-      console.log(parsedInstruction[0].trim().toLowerCase());
       switch (parsedInstruction[0].trim().toLowerCase()) {
         case 'add': { }
         case 'addi': {
@@ -125,7 +123,6 @@ export class InstructionInputComponent implements OnInit {
         }
       }
     }
-    console.log(this.hazardList);
     this.hazardList.length > 0 ?
       (document.getElementById('hazardList') as HTMLInputElement).value = this.hazardList
       : (document.getElementById('hazardList') as HTMLInputElement).value = 'No Hazards Found';
@@ -211,12 +208,10 @@ export class InstructionInputComponent implements OnInit {
     if (currentInstruction > 0) {
       if (cellOffset < (document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells.length) {
         if ((document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells[cellOffset].innerText === node && node !== '') {
-          console.log('structural hazard');
           newCell = row.insertCell(cellOffset);
           newText = document.createTextNode('stall');
           newCell.appendChild(newText);
           cellOffset++;
-          console.log(this.hazardList);
           this.hazardList += 'Structural Hazard: Instructions ' +
             (currentInstruction + 1) +
             ' and ' +
@@ -224,15 +219,12 @@ export class InstructionInputComponent implements OnInit {
             ' attempt ' +
             node +
             ' at the same time. Add Stall.\n';
-          console.log(this.hazardList);
         }
         if ((document.getElementById('timingDiagram') as HTMLTableElement).rows[currentInstruction - 1].cells[cellOffset].innerText === 'stall') {
-          console.log('stall hazard');
           newCell = row.insertCell(cellOffset);
           newText = document.createTextNode('stall');
           newCell.appendChild(newText);
           cellOffset++;
-          console.log(this.hazardList);
           this.hazardList += 'Structural Hazard: Instructions ' +
             (currentInstruction + 1) +
             ' and ' +
@@ -240,7 +232,6 @@ export class InstructionInputComponent implements OnInit {
             ' attempt ' +
             node +
             ' at the same time. Add Stall.\n';
-          console.log(this.hazardList);
         }
       }
     }
